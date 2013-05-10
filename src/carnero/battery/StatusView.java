@@ -11,16 +11,19 @@ import carnero.battery.listener.BatteryStatusListener;
 
 public class StatusView extends View implements BatteryStatusListener {
 
-	private Paint mBackground;
-	private Paint mForeground;
-	private int mColorCharging;
-	private int mColorDischarging;
 	private int mHeight;
 	private float mPercent;
 	private int mWidthLevel;
 	private boolean mBattCharging = false;
 	private int mBattLevel = 0;
 	private int mBattScale = 100;
+	// paint
+	private Paint mBackground;
+	private Paint mForeground;
+	// color
+	private int mColorCharging;
+	private int mColorDischarging;
+	private int mColorCritical;
 
 	public StatusView(Context context) {
 		super(context);
@@ -49,6 +52,7 @@ public class StatusView extends View implements BatteryStatusListener {
 
 		mColorCharging = getResources().getColor(R.color.status_fg_charging);
 		mColorDischarging = getResources().getColor(R.color.status_fg_discharging);
+		mColorCritical = getResources().getColor(R.color.status_fg_critical);
 	}
 
 	@Override
@@ -70,7 +74,11 @@ public class StatusView extends View implements BatteryStatusListener {
 		if (mBattCharging) {
 			mForeground.setColor(mColorCharging);
 		} else {
-			mForeground.setColor(mColorDischarging);
+			if (mPercent < 0.15) {
+				mForeground.setColor(mColorCritical);
+			} else {
+				mForeground.setColor(mColorDischarging);
+			}
 		}
 
 		canvas.save();

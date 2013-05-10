@@ -2,7 +2,6 @@ package carnero.battery;
 
 import android.app.Notification;
 import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -19,6 +18,8 @@ public class Main extends Service {
 
 	private StatusView mStatusView;
 	private BatteryStatusReceiver mReceiver;
+	private NotificationManager mNotificationManager;
+	private Notification.Builder mNotificationBuilder;
 	// constants
 	private static final int NOTIFICATION_ID = 47;
 
@@ -43,15 +44,15 @@ public class Main extends Service {
 		wm.addView(mStatusView, lp);
 
 		// notification
-		Intent intent = new Intent(this, Intro.class);
-		intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+		mNotificationBuilder = new Notification.Builder(this)
+				.setOngoing(true)
+				.setSmallIcon(R.drawable.ic_notification)
+				.setTicker(getString(R.string.app_name))
+				.setContentTitle(getString(R.string.notification_loading))
+				.setContentText("");
 
-		PendingIntent pending = PendingIntent.getActivity(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-		Notification notification = new Notification(R.drawable.icon, getString(R.string.app_name), (Notification.FLAG_ONGOING_EVENT | Notification.FLAG_FOREGROUND_SERVICE | Notification.FLAG_NO_CLEAR));
-		notification.setLatestEventInfo(this, getString(R.string.app_name), getString(R.string.app_name), pending);
-
-		startForeground(NOTIFICATION_ID, notification);
+		startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
 
 		// battery status receiver
 		mReceiver = new BatteryStatusReceiver();
@@ -83,12 +84,14 @@ public class Main extends Service {
 
 	// classes
 
-	public class BatteryStatusReceiver extends BroadcastReceiver {
+	private class BatteryStatusReceiver extends BroadcastReceiver {
 
-		int mStatus = -1;
-		int mLevel = 0;
-		int mScale = 0;
-		boolean mCharging = false;
+		private int mStatus = -1;
+		private int mStatusOld = -1;
+		private int mLevel = 0;
+		private int mScale = 0;
+		private boolean mCharging = false;
+		private int mPercent;
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -100,6 +103,29 @@ public class Main extends Service {
 			if (mStatusView != null) {
 				mStatusView.onBatteryChanged(mCharging, mLevel, mScale);
 			}
+
+			if (mNotificationManager != null && mNotificationBuilder != null) {
+				mPercent = (int) (((float) mLevel / (float) mScale) * 100);
+
+				mNotificationBuilder.setContentTitle(Integer.toString(mPercent) + "%");
+				if (mStatus == BatteryManager.BATTERY_STATUS_CHARGING) {
+					mNotificationBuilder.setContentText(getString(R.string.notification_charging));
+				} else if (mStatus == BatteryManager.BATTERY_STATUS_FULL) {
+					mNotificationBuilder.setContentText(getString(R.string.notification_full));
+				} else {
+					mNotificationBuilder.setContentText(getString(R.string.notification_discharging));
+				}
+				if (mPercent < 15) {
+					mNotificationBuilder.setLights(getResources().getColor(R.color.led_critical), 1000, 500);
+				}
+				if (mStatus != mStatusOld) {
+					mNotificationBuilder.setWhen(System.currentTimeMillis());
+				}
+
+				mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+			}
+
+			mStatus = mStatusOld;
 		}
 	}
 }

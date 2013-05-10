@@ -1,6 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 	<color name="status_background">#FF000000</color>
-	<color name="status_fg_charging">#FF00E566</color>
+	<color name="status_fg_charging">#FF00B609</color>
 	<color name="status_fg_discharging">#FF33B5E5</color>
+	<color name="status_fg_critical">#FFFF0000</color>
+	<!-- LED -->
+	<color name="led_critical">#FFFF0000</color>
 </resources>
