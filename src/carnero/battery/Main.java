@@ -88,6 +88,8 @@ public class Main extends Service {
 
 		private int mStatus = -1;
 		private int mStatusOld = -1;
+		private int mHealth = -1;
+		private float mTemp = 0;
 		private int mLevel = 0;
 		private int mScale = 0;
 		private boolean mCharging = false;
@@ -96,6 +98,8 @@ public class Main extends Service {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			mStatus = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1);
+			mHealth = intent.getIntExtra(BatteryManager.EXTRA_HEALTH, -1);
+			mTemp = intent.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0) / 10; // centigrade -> celsius
 			mLevel = intent.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
 			mScale = intent.getIntExtra(BatteryManager.EXTRA_SCALE, 0);
 			mCharging = (mStatus == BatteryManager.BATTERY_STATUS_CHARGING || mStatus == BatteryManager.BATTERY_STATUS_FULL);
@@ -105,22 +109,34 @@ public class Main extends Service {
 			}
 
 			if (mNotificationManager != null && mNotificationBuilder != null) {
+				StringBuilder sb = new StringBuilder();
+
 				mPercent = (int) (((float) mLevel / (float) mScale) * 100);
 
 				mNotificationBuilder.setContentTitle(Integer.toString(mPercent) + "%");
 				if (mStatus == BatteryManager.BATTERY_STATUS_CHARGING) {
-					mNotificationBuilder.setContentText(getString(R.string.notification_charging));
+					sb.append(getString(R.string.notification_charging));
 				} else if (mStatus == BatteryManager.BATTERY_STATUS_FULL) {
-					mNotificationBuilder.setContentText(getString(R.string.notification_full));
+					sb.append(getString(R.string.notification_full));
 				} else {
-					mNotificationBuilder.setContentText(getString(R.string.notification_discharging));
+					sb.append(getString(R.string.notification_discharging));
 				}
-				if (mPercent < 15) {
+
+				if (mHealth == BatteryManager.BATTERY_HEALTH_OVERHEAT) {
+					sb.append(", ");
+					sb.append(mTemp);
+					sb.append("\u00B0C");
+
+					mNotificationBuilder.setLights(getResources().getColor(R.color.led_critical), 250, 250);
+				} else if (mPercent < 15) {
 					mNotificationBuilder.setLights(getResources().getColor(R.color.led_critical), 1000, 500);
 				}
+
 				if (mStatus != mStatusOld) {
 					mNotificationBuilder.setWhen(System.currentTimeMillis());
 				}
+
+				mNotificationBuilder.setContentText(sb.toString());
 
 				mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
 			}
