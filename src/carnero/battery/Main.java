@@ -19,7 +19,6 @@ public class Main extends Service {
 	private StatusView mStatusView;
 	private BatteryStatusReceiver mReceiver;
 	private NotificationManager mNotificationManager;
-	private Notification.Builder mNotificationBuilder;
 	// constants
 	private static final int NOTIFICATION_ID = 47;
 
@@ -45,14 +44,14 @@ public class Main extends Service {
 
 		// notification
 		mNotificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		mNotificationBuilder = new Notification.Builder(this)
+		final Notification.Builder builder = new Notification.Builder(this)
 				.setOngoing(true)
 				.setSmallIcon(R.drawable.ic_notification)
 				.setTicker(getString(R.string.app_name))
 				.setContentTitle(getString(R.string.notification_loading))
 				.setContentText("");
 
-		startForeground(NOTIFICATION_ID, mNotificationBuilder.build());
+		startForeground(NOTIFICATION_ID, builder.build());
 
 		// battery status receiver
 		mReceiver = new BatteryStatusReceiver();
@@ -94,6 +93,7 @@ public class Main extends Service {
 		private int mScale = 0;
 		private boolean mCharging = false;
 		private int mPercent;
+		private long mWhen = System.currentTimeMillis();
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
@@ -108,12 +108,22 @@ public class Main extends Service {
 				mStatusView.onBatteryChanged(mCharging, mLevel, mScale);
 			}
 
-			if (mNotificationManager != null && mNotificationBuilder != null) {
-				StringBuilder sb = new StringBuilder();
+			if (mStatus != mStatusOld) {
+				mWhen = System.currentTimeMillis();
+
+				mStatusOld = mStatus;
+			}
+
+			if (mNotificationManager != null) {
+				final StringBuilder sb = new StringBuilder();
+				final Notification.Builder nb = new Notification.Builder(Main.this)
+						.setOngoing(true)
+						.setSmallIcon(R.drawable.ic_notification);
+
+				nb.setContentTitle(Integer.toString(mPercent) + "%");
 
 				mPercent = (int) (((float) mLevel / (float) mScale) * 100);
 
-				mNotificationBuilder.setContentTitle(Integer.toString(mPercent) + "%");
 				if (mStatus == BatteryManager.BATTERY_STATUS_CHARGING) {
 					sb.append(getString(R.string.notification_charging));
 				} else if (mStatus == BatteryManager.BATTERY_STATUS_FULL) {
@@ -127,21 +137,15 @@ public class Main extends Service {
 					sb.append(mTemp);
 					sb.append("\u00B0C");
 
-					mNotificationBuilder.setLights(getResources().getColor(R.color.led_critical), 250, 250);
+					nb.setLights(getResources().getColor(R.color.led_critical), 250, 250);
 				} else if (mPercent < 15) {
-					mNotificationBuilder.setLights(getResources().getColor(R.color.led_critical), 1000, 500);
+					nb.setLights(getResources().getColor(R.color.led_critical), 1000, 500);
 				}
+				nb.setWhen(mWhen);
+				nb.setContentText(sb.toString());
 
-				if (mStatus != mStatusOld) {
-					mNotificationBuilder.setWhen(System.currentTimeMillis());
-				}
-
-				mNotificationBuilder.setContentText(sb.toString());
-
-				mNotificationManager.notify(NOTIFICATION_ID, mNotificationBuilder.build());
+				mNotificationManager.notify(NOTIFICATION_ID, nb.build());
 			}
-
-			mStatus = mStatusOld;
 		}
 	}
 }
