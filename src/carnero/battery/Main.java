@@ -138,7 +138,7 @@ public class Main extends Service {
 					sb.append("\u00B0C");
 
 					nb.setLights(getResources().getColor(R.color.led_critical), 250, 250);
-				} else if (mPercent < 15) {
+				} else if (mPercent <= 15 && !mCharging) {
 					nb.setLights(getResources().getColor(R.color.led_critical), 1000, 500);
 				}
 				nb.setWhen(mWhen);
