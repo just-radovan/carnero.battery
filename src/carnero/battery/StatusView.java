@@ -17,6 +17,7 @@ public class StatusView extends View implements BatteryStatusListener {
 	private boolean mBattCharging = false;
 	private int mBattLevel = 0;
 	private int mBattScale = 100;
+	private float mBattTemp;
 	// paint
 	private Paint mBackground;
 	private Paint mForeground;
@@ -74,11 +75,7 @@ public class StatusView extends View implements BatteryStatusListener {
 		if (mBattCharging) {
 			mForeground.setColor(mColorCharging);
 		} else {
-			if (mPercent < 0.15) {
-				mForeground.setColor(mColorCritical);
-			} else {
-				mForeground.setColor(mColorDischarging);
-			}
+			mForeground.setColor(mColorDischarging);
 		}
 
 		canvas.save();
@@ -89,10 +86,11 @@ public class StatusView extends View implements BatteryStatusListener {
 		canvas.restore();
 	}
 
-	public void onBatteryChanged(boolean charging, int level, int scale) {
+	public void onBatteryChanged(boolean charging, int level, int scale, float temp) {
 		mBattCharging = charging;
 		mBattLevel = level;
 		mBattScale = scale;
+		mBattTemp = temp;
 
 		invalidate();
 	}

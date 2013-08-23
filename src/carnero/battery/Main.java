@@ -105,7 +105,7 @@ public class Main extends Service {
 			mCharging = (mStatus == BatteryManager.BATTERY_STATUS_CHARGING || mStatus == BatteryManager.BATTERY_STATUS_FULL);
 
 			if (mStatusView != null) {
-				mStatusView.onBatteryChanged(mCharging, mLevel, mScale);
+				mStatusView.onBatteryChanged(mCharging, mLevel, mScale, mTemp);
 			}
 
 			if (mStatus != mStatusOld) {
@@ -132,11 +132,11 @@ public class Main extends Service {
 					sb.append(getString(R.string.notification_discharging));
 				}
 
-				if (mHealth == BatteryManager.BATTERY_HEALTH_OVERHEAT) {
-					sb.append(", ");
-					sb.append(mTemp);
-					sb.append("\u00B0C");
+				sb.append(", ");
+				sb.append(mTemp);
+				sb.append("\u00B0C");
 
+				if (mHealth == BatteryManager.BATTERY_HEALTH_OVERHEAT) {
 					nb.setLights(getResources().getColor(R.color.led_critical), 250, 250);
 				} else if (mPercent <= 15 && !mCharging) {
 					nb.setLights(getResources().getColor(R.color.led_critical), 1000, 500);
