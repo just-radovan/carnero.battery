@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-	<string name="app_name">Powerline</string>
+    <string name="app_name">Powerline</string>
 
-	<string name="notification_loading">Loading battery status...</string>
-	<string name="notification_full">full</string>
-	<string name="notification_charging">charging</string>
-	<string name="notification_discharging">discharging</string>
+    <string name="notification_loading">Loading battery status...</string>
+    <string name="notification_full">full</string>
+    <string name="notification_charging">charging</string>
+    <string name="notification_discharging">discharging</string>
 </resources>

@@ -6,13 +6,13 @@ import android.os.Bundle;
 
 public class Intro extends Activity {
 
-	@Override
-	public void onCreate(Bundle state) {
-		super.onCreate(state);
+    @Override
+    public void onCreate(Bundle state) {
+        super.onCreate(state);
 
-		final Intent intent = new Intent(this, Main.class);
-		startService(intent);
+        final Intent intent = new Intent(this, Main.class);
+        startService(intent);
 
-		finish();
-	}
+        finish();
+    }
 }
